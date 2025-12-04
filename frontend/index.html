@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FairPay for Gig Workers – Ola, Uber, Swiggy, Zomato, Porter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div class="nav">
+          <div class="nav-left">
+            <div class="logo-mark">FP</div>
+            <div>
+              <div class="logo-title">FairPay for Gig Workers</div>
+              <div class="logo-sub">
+                Ola, Uber, Swiggy, Zomato, Porter & more
+              </div>
+            </div>
+          </div>
+
+          <nav class="nav-links">
+            <a href="#hero">Analyzer</a>
+            <a href="#insights">How it works</a>
+          </nav>
+
+          <button
+            class="nav-toggle"
+            id="navToggle"
+            aria-label="Toggle navigation"
+          >
+            ☰
+          </button>
+
+          <div class="nav-badge">
+            <div class="nav-badge-dot"></div>
+            <span>Overnight Hackathon Build</span>
+          </div>
+        </div>
+
+        <nav class="nav-links-mobile" id="mobileNav">
+          <a href="#hero">Analyzer</a>
+          <a href="#insights">How it works</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section id="hero">
+        <div class="container">
+          <div class="hero-grid">
+            <div>
+              <div class="pill">
+                <div class="pill-dot"></div>
+                <span>Gig worker income fairness</span>
+              </div>
+
+              <h1 class="hero-title">
+                <span>FairPay</span> checks if your gig income is fair.
+              </h1>
+
+              <p class="hero-subtitle">
+                For drivers and delivery partners on Ola, Uber, Swiggy, Zomato,
+                Porter, Dunzo and other platforms. Enter your hours online,
+                tasks completed, earnings and costs — get a fairness score and a
+                better target rate.
+              </p>
+
+              <div class="hero-meta">
+                <div class="chip">
+                  📊 <strong>Net earnings per hour, after all cuts</strong>
+                </div>
+                <div class="chip">
+                  🧠 <strong>Considers city, platform & vehicle</strong>
+                </div>
+                <div class="chip">
+                  🧾 <strong>Matches typical CSV metrics</strong>
+                </div>
+              </div>
+
+              <div class="hero-actions">
+                <button class="btn btn-primary" id="quickExample">
+                  Try an Ola / Uber example →
+                </button>
+                <a class="btn btn-outline" href="#insights">
+                  See how FairPay calculates
+                </a>
+              </div>
+
+              <div class="hero-hint">
+                Tip: Change <kbd>tasks completed</kbd> and
+                <kbd>hours online</kbd> to see how your effective
+                <kbd>₹/hour</kbd> and score move.
+              </div>
+            </div>
+
+            <aside class="analyzer-card">
+              <div class="analyzer-header">
+                <div>
+                  <div class="analyzer-header-title">FairPay Gig Analyzer</div>
+                  <div style="font-size: 0.85rem; color: var(--muted)">
+                    Estimate fairness based on metrics.
+                  </div>
+                </div>
+                <div class="analyzer-badge">
+                  <span></span>
+                  <span>Local mock model</span>
+                </div>
+              </div>
+
+              <form id="fairPayForm">
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label class="label" for="platform"
+                      >Platform <span>*</span></label
+                    >
+                    <select id="platform" required>
+                      <option value="">Select platform</option>
+                      <option value="ola">Ola</option>
+                      <option value="uber">Uber</option>
+                      <option value="swiggy">Swiggy</option>
+                      <option value="zomato">Zomato</option>
+                      <option value="porter">Porter</option>
+                      <option value="dunzo">Dunzo</option>
+                      <option value="other">Other / Multiple</option>
+                    </select>
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="gigType"
+                      >Type of work <span>*</span></label
+                    >
+                    <select id="gigType" required>
+                      <option value="">Select type</option>
+                      <option value="ride">Ride-hailing / Taxi</option>
+                      <option value="delivery">Food / Grocery delivery</option>
+                      <option value="parcel">Parcel / Logistics</option>
+                      <option value="other">Other gig work</option>
+                    </select>
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="cityTier"
+                      >City <span>*</span></label
+                    >
+                    <select id="cityTier" required>
+                      <option value="">Select city type</option>
+                      <option value="metro">
+                        Metro / Tier-1 (e.g. BLR, MUM)
+                      </option>
+                      <option value="tier2">Tier-2 city</option>
+                      <option value="tier3">Tier-3 / small town</option>
+                    </select>
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="vehicle"
+                      >Vehicle type <span>*</span></label
+                    >
+                    <select id="vehicle" required>
+                      <option value="">Select vehicle</option>
+                      <option value="bike">Bike / Scooter</option>
+                      <option value="car">Car</option>
+                      <option value="auto">Auto-rickshaw</option>
+                      <option value="tempo">Tempo / Van / Truck</option>
+                      <option value="cycle">Cycle</option>
+                    </select>
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="totalHoursOnline"
+                      >Total hours online <span>*</span></label
+                    >
+                    <input
+                      type="number"
+                      id="totalHoursOnline"
+                      min="1"
+                      step="0.1"
+                      placeholder="e.g. 220"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="tasksCompleted"
+                      >Tasks completed <span>*</span></label
+                    >
+                    <input
+                      type="number"
+                      id="tasksCompleted"
+                      min="1"
+                      step="1"
+                      placeholder="e.g. 320"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="earnings"
+                      >Total earnings (₹) <span>*</span></label
+                    >
+                    <input
+                      type="number"
+                      id="earnings"
+                      min="0"
+                      step="100"
+                      placeholder="Total credited"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="bonusesReceived"
+                      >Bonuses (₹)</label
+                    >
+                    <input
+                      type="number"
+                      id="bonusesReceived"
+                      min="0"
+                      step="100"
+                      placeholder="Surge, incentives"
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="deductions">Deductions (₹)</label>
+                    <input
+                      type="number"
+                      id="deductions"
+                      min="0"
+                      step="100"
+                      placeholder="Penalties, fines"
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="platformFees"
+                      >Platform fees (₹)</label
+                    >
+                    <input
+                      type="number"
+                      id="platformFees"
+                      min="0"
+                      step="100"
+                      placeholder="Commissions"
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="extraCosts"
+                      >Operating costs (₹)</label
+                    >
+                    <input
+                      type="number"
+                      id="extraCosts"
+                      min="0"
+                      step="100"
+                      placeholder="Fuel, maintenance"
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="rating">Avg rating (opt)</label>
+                    <input
+                      type="number"
+                      id="rating"
+                      min="0"
+                      max="5"
+                      step="0.01"
+                      placeholder="e.g. 4.6"
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label class="label" for="cancellationRate"
+                      >Cancel rate % (opt)</label
+                    >
+                    <input
+                      type="number"
+                      id="cancellationRate"
+                      min="0"
+                      max="100"
+                      step="1"
+                      placeholder="e.g. 12"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary btn-small">
+                    Analyze my income
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline btn-small"
+                    id="resetForm"
+                  >
+                    Reset
+                  </button>
+                  <span class="hint-small">All calculations run locally.</span>
+                </div>
+              </form>
+
+              <div class="results" id="results" style="display: none">
+                <div class="results-header">
+                  <div>
+                    <div class="results-title">FairPay score</div>
+                    <div class="score-row">
+                      <div>
+                        <div class="score-number" id="scoreNumber">–</div>
+                        <div class="score-sub" id="scoreLabel">
+                          Fill details and analyze.
+                        </div>
+                      </div>
+                      <div class="score-bar">
+                        <div class="score-fill" id="scoreFill"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="score-chip" id="scoreTag">
+                    <span class="score-chip-dot"></span>
+                    <span>–</span>
+                  </div>
+                </div>
+
+                <div class="results-body" id="resultsBody"></div>
+                <div class="metric-row" id="metricRow"></div>
+                <div class="range-row" id="rangeRow"></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="insights">
+        <div class="container">
+          <div class="section-header">
+            <div class="eyebrow">How it works (hackathon logic)</div>
+            <h2 class="section-title">What FairPay looks at for gig workers</h2>
+            <p class="section-sub">
+              In a real product, FairPay would use live platform data. For this
+              hackathon, we mirror typical CSV metrics.
+            </p>
+          </div>
+
+          <div class="two-col">
+            <div class="card">
+              <h3>Inputs used for your score</h3>
+              <p>
+                We focus on what actually matters:
+                <strong>net earnings per hour</strong>.
+              </p>
+              <ul>
+                <li>Platform (Ola, Uber, etc.) & Work Type</li>
+                <li>City Tier & Vehicle</li>
+                <li><strong>hours_online</strong>: total hours online.</li>
+                <li>
+                  <strong>earnings + bonuses</strong> vs
+                  <strong>deductions + fees + costs</strong>.
+                </li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3>Example fair net hourly bands (demo only)</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Work type</th>
+                    <th>City</th>
+                    <th>Est. fair net ₹/hour</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Ride-hailing</td>
+                    <td>Metro</td>
+                    <td>₹ 260 – 320</td>
+                  </tr>
+                  <tr>
+                    <td>Food delivery</td>
+                    <td>Metro</td>
+                    <td>₹ 200 – 260</td>
+                  </tr>
+                  <tr>
+                    <td>Food delivery</td>
+                    <td>Tier-2</td>
+                    <td>₹ 160 – 220</td>
+                  </tr>
+                  <tr>
+                    <td>Logistics</td>
+                    <td>Metro</td>
+                    <td>₹ 260 – 330</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-inner">
+          <div>
+            FairPay for Gig Workers – built overnight for a hackathon. Demo
+            model only.
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
