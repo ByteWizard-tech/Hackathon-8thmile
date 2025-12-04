@@ -102,7 +102,6 @@
 
               <form id="fairPayForm">
                 <div class="form-grid">
-                  <!-- ⭐ ADDED: Number of shifts input -->
                   <div class="form-field">
                     <label class="label" for="shiftCount">
                       Number of shifts <span>*</span>
@@ -116,7 +115,6 @@
                     />
                   </div>
 
-                  <!-- This stays as-is -->
                   <div class="form-field">
                     <label class="label" for="platform"
                       >Platform <span>*</span></label
@@ -217,6 +215,12 @@
                 <div class="results-body" id="resultsBody"></div>
                 <div class="metric-row" id="metricRow"></div>
                 <div class="range-row" id="rangeRow"></div>
+
+                <div class="appeal-actions" style="margin-top: 1rem">
+                  <button id="generateAppeal" class="btn btn-outline btn-small">
+                    Generate Appeal Letter
+                  </button>
+                </div>
               </div>
             </aside>
           </div>
@@ -290,6 +294,23 @@
         </div>
       </section>
     </main>
+
+    <!-- ⭐ GLOBAL MODAL - CORRECT PLACEMENT -->
+    <div id="appealModal" class="appeal-modal" style="display: none">
+      <div class="appeal-content">
+        <h3>Appeal Letter</h3>
+        <pre id="appealText"></pre>
+
+        <div style="margin-top: 1rem; display: flex; gap: 10px">
+          <button id="copyAppeal" class="btn btn-small btn-primary">
+            Copy Letter
+          </button>
+          <button id="closeAppeal" class="btn btn-small btn-outline">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
 
     <footer class="fairpay-footer" aria-label="Site footer">
       <div class="container">

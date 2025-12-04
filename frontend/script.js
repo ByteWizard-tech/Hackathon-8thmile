@@ -334,3 +334,51 @@ document.getElementById("quickExample").addEventListener("click", () => {
   form.dispatchEvent(new Event("submit"));
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
+
+/* ------------------- APPEAL LETTER LOGIC ------------------- */
+const generateAppealBtn = document.getElementById("generateAppeal");
+const appealModal = document.getElementById("appealModal");
+const appealText = document.getElementById("appealText");
+const copyAppealBtn = document.getElementById("copyAppeal");
+const closeAppealBtn = document.getElementById("closeAppeal");
+
+generateAppealBtn.addEventListener("click", async () => {
+  try {
+    const shifts = collectShifts(); // reuse same function
+
+    const response = await fetch(`${API_BASE}/generate-appeal-form`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ shifts }),
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      alert("Error generating appeal letter: " + data.error);
+      return;
+    }
+
+    appealText.textContent = data.appeal_letter;
+    appealModal.style.display = "flex";
+  } catch (err) {
+    alert("Failed to generate appeal letter: " + err.message);
+  }
+});
+
+copyAppealBtn.addEventListener("click", () => {
+  navigator.clipboard.writeText(appealText.textContent);
+  copyAppealBtn.textContent = "Copied!";
+  setTimeout(() => (copyAppealBtn.textContent = "Copy Letter"), 1500);
+});
+
+closeAppealBtn.addEventListener("click", () => {
+  appealModal.style.display = "none";
+});
+
+// Close modal when clicking outside the dialog box
+appealModal.addEventListener("click", (event) => {
+  if (event.target === appealModal) {
+    appealModal.style.display = "none";
+  }
+});
