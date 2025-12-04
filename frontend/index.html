@@ -32,11 +32,6 @@
           >
             ☰
           </button>
-
-          <div class="nav-badge">
-            <div class="nav-badge-dot"></div>
-            <span>Overnight Hackathon Build</span>
-          </div>
         </div>
 
         <nav class="nav-links-mobile" id="mobileNav">
@@ -103,14 +98,25 @@
                     Estimate fairness based on metrics.
                   </div>
                 </div>
-                <div class="analyzer-badge">
-                  <span></span>
-                  <span>Local mock model</span>
-                </div>
               </div>
 
               <form id="fairPayForm">
                 <div class="form-grid">
+                  <!-- ⭐ ADDED: Number of shifts input -->
+                  <div class="form-field">
+                    <label class="label" for="shiftCount">
+                      Number of shifts <span>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="shiftCount"
+                      min="1"
+                      placeholder="e.g. 3"
+                      required
+                    />
+                  </div>
+
+                  <!-- This stays as-is -->
                   <div class="form-field">
                     <label class="label" for="platform"
                       >Platform <span>*</span></label
@@ -167,129 +173,13 @@
                       <option value="cycle">Cycle</option>
                     </select>
                   </div>
-
-                  <div class="form-field">
-                    <label class="label" for="totalHoursOnline"
-                      >Total hours online <span>*</span></label
-                    >
-                    <input
-                      type="number"
-                      id="totalHoursOnline"
-                      min="1"
-                      step="0.1"
-                      placeholder="e.g. 220"
-                      required
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label class="label" for="tasksCompleted"
-                      >Tasks completed <span>*</span></label
-                    >
-                    <input
-                      type="number"
-                      id="tasksCompleted"
-                      min="1"
-                      step="1"
-                      placeholder="e.g. 320"
-                      required
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label class="label" for="earnings"
-                      >Total earnings (₹) <span>*</span></label
-                    >
-                    <input
-                      type="number"
-                      id="earnings"
-                      min="0"
-                      step="100"
-                      placeholder="Total credited"
-                      required
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label class="label" for="bonusesReceived"
-                      >Bonuses (₹)</label
-                    >
-                    <input
-                      type="number"
-                      id="bonusesReceived"
-                      min="0"
-                      step="100"
-                      placeholder="Surge, incentives"
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label class="label" for="deductions">Deductions (₹)</label>
-                    <input
-                      type="number"
-                      id="deductions"
-                      min="0"
-                      step="100"
-                      placeholder="Penalties, fines"
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label class="label" for="platformFees"
-                      >Platform fees (₹)</label
-                    >
-                    <input
-                      type="number"
-                      id="platformFees"
-                      min="0"
-                      step="100"
-                      placeholder="Commissions"
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label class="label" for="extraCosts"
-                      >Operating costs (₹)</label
-                    >
-                    <input
-                      type="number"
-                      id="extraCosts"
-                      min="0"
-                      step="100"
-                      placeholder="Fuel, maintenance"
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label class="label" for="rating">Avg rating (opt)</label>
-                    <input
-                      type="number"
-                      id="rating"
-                      min="0"
-                      max="5"
-                      step="0.01"
-                      placeholder="e.g. 4.6"
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label class="label" for="cancellationRate"
-                      >Cancel rate % (opt)</label
-                    >
-                    <input
-                      type="number"
-                      id="cancellationRate"
-                      min="0"
-                      max="100"
-                      step="1"
-                      placeholder="e.g. 12"
-                    />
-                  </div>
                 </div>
+
+                <div id="shiftContainer" class="shift-container"></div>
 
                 <div class="form-actions">
                   <button type="submit" class="btn btn-primary btn-small">
-                    Analyze my income
+                    Analyze
                   </button>
                   <button
                     type="button"
@@ -401,14 +291,12 @@
       </section>
     </main>
 
-    <footer>
+    <footer class="fairpay-footer" aria-label="Site footer">
       <div class="container">
-        <div class="footer-inner">
-          <div>
-            FairPay for Gig Workers – built overnight for a hackathon. Demo
-            model only.
-          </div>
-        </div>
+        <p class="tagline">
+          FairPay — Transparent Earnings. Empowered Workers.
+        </p>
+        <p class="copyright">© 2025 FairPay Initiative</p>
       </div>
     </footer>
 

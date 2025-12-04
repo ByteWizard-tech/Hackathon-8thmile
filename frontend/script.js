@@ -55,22 +55,18 @@ if(uploadBtn) {
 */
 // ----------------------------------------------------
 
-// --- FairPay gig logic (mock model) ---
+// --- FairPay API-backed analysis ---
+const API_BASE = "http://localhost:8000";
+
 const form = document.getElementById("fairPayForm");
 const platformEl = document.getElementById("platform");
 const gigTypeEl = document.getElementById("gigType");
 const cityTierEl = document.getElementById("cityTier");
 const vehicleEl = document.getElementById("vehicle");
 
-const totalHoursOnlineEl = document.getElementById("totalHoursOnline");
-const tasksCompletedEl = document.getElementById("tasksCompleted");
-const earningsEl = document.getElementById("earnings");
-const bonusesReceivedEl = document.getElementById("bonusesReceived");
-const deductionsEl = document.getElementById("deductions");
-const platformFeesEl = document.getElementById("platformFees");
-const extraCostsEl = document.getElementById("extraCosts");
-const ratingEl = document.getElementById("rating");
-const cancellationRateEl = document.getElementById("cancellationRate");
+const shiftCountEl = document.getElementById("shiftCount");
+const shiftContainer = document.getElementById("shiftContainer");
+const submitBtn = form.querySelector("button[type='submit']");
 
 const results = document.getElementById("results");
 const scoreNumber = document.getElementById("scoreNumber");
@@ -81,112 +77,9 @@ const resultsBody = document.getElementById("resultsBody");
 const metricRow = document.getElementById("metricRow");
 const rangeRow = document.getElementById("rangeRow");
 
-// base fair net per hour (₹) by gigType + cityTier
-const baseFair = {
-  ride: { metro: 290, tier2: 240, tier3: 210 },
-  delivery: { metro: 230, tier2: 190, tier3: 170 },
-  parcel: { metro: 290, tier2: 240, tier3: 210 },
-  other: { metro: 200, tier2: 170, tier3: 150 },
-};
-
-// simple vehicle factor
-function vehicleFactor(vehicle) {
-  if (vehicle === "car" || vehicle === "tempo") return 1.1;
-  if (vehicle === "cycle") return 0.9;
-  return 1.0;
-}
-
-function getBaseFair(gigType, cityTier, vehicle) {
-  const type = baseFair[gigType] ? gigType : "other";
-  const tierBand = baseFair[type][cityTier] || baseFair[type].metro;
-  return tierBand * vehicleFactor(vehicle);
-}
-
-function analyzeGigOffer({
-  gigType,
-  cityTier,
-  vehicle,
-  totalHoursOnline,
-  tasksCompleted,
-  earnings,
-  bonusesReceived,
-  deductions,
-  platformFees,
-  extraCosts,
-}) {
-  const totalIncome = earnings + bonusesReceived;
-  const totalCosts = deductions + platformFees + extraCosts;
-  const netMonthly = totalIncome - totalCosts;
-
-  const hours = totalHoursOnline > 0 ? totalHoursOnline : 0;
-  const netPerHour = hours > 0 ? netMonthly / hours : 0;
-  const netPerTask = tasksCompleted > 0 ? netMonthly / tasksCompleted : 0;
-
-  const base = getBaseFair(gigType, cityTier, vehicle);
-  const fairLow = base * 0.9;
-  const fairHigh = base * 1.2;
-  const target = base * 1.05;
-
-  let score = 0;
-  let ratio = base > 0 ? netPerHour / base : 0;
-
-  if (netPerHour <= 0 || !isFinite(ratio)) {
-    score = 0;
-  } else if (ratio < 0.6) {
-    score = 15 + ratio * 20;
-  } else if (ratio < 0.8) {
-    score = 30 + (ratio - 0.6) * 75;
-  } else if (ratio < 1.0) {
-    score = 50 + (ratio - 0.8) * 75;
-  } else if (ratio < 1.2) {
-    score = 70 + (ratio - 1.0) * 80;
-  } else if (ratio < 1.5) {
-    score = 86 + (ratio - 1.2) * 40;
-  } else {
-    score = 100;
-  }
-
-  score = Math.max(0, Math.min(100, Math.round(score)));
-
-  let tag, label, tone;
-  if (score < 35) {
-    tag = "Severe underpay (demo)";
-    label =
-      "Your net earnings per hour look far below the estimated fair band.";
-    tone = "danger";
-  } else if (score < 55) {
-    tag = "Underpaid (demo)";
-    label =
-      "You are earning below the fair band; this supports a strong case to negotiate.";
-    tone = "warning";
-  } else if (score < 70) {
-    tag = "Near fair (demo)";
-    label = "You are close to the fair range but still have room to negotiate.";
-    tone = "amber";
-  } else if (score < 85) {
-    tag = "Fair & sustainable (demo)";
-    label = "Income appears healthy compared to the band for your city.";
-    tone = "good";
-  } else {
-    tag = "Premium (demo)";
-    label = "Net hourly earnings are above typical bands.";
-    tone = "premium";
-  }
-
-  return {
-    score,
-    tag,
-    label,
-    tone,
-    netPerHour,
-    netPerTask,
-    netMonthly,
-    totalHoursOnline: hours,
-    tasksCompleted: tasksCompleted,
-    fairLow,
-    fairHigh,
-    target,
-  };
+function normalizeNumber(val) {
+  const num = Number(val);
+  return Number.isFinite(num) ? num : 0;
 }
 
 function formatCurrency(num) {
@@ -213,124 +106,231 @@ function updateScoreChipTone(tone) {
   dot.style.background = color;
   dot.style.boxShadow = `0 0 10px ${color}`;
 }
+function toneForScore(score) {
+  if (score < 35) return { tone: "danger", tag: "Severe risk" };
+  if (score < 55) return { tone: "warning", tag: "Underpaid" };
+  if (score < 70) return { tone: "amber", tag: "Borderline" };
+  if (score < 85) return { tone: "good", tag: "Fair" };
+  return { tone: "premium", tag: "Strong" };
+}
 
-form.addEventListener("submit", (e) => {
+function renderAnomalies(list) {
+  if (!Array.isArray(list) || list.length === 0)
+    return "<div>No anomalies reported.</div>";
+  return list
+    .map((item) => `<div class="anomaly-item">• ${item}</div>`)
+    .join("");
+}
+
+function renderMetrics(metrics) {
+  if (!metrics) return "";
+  return `
+    <div class="metric-pill">
+      <div class="metric-label">Low-rate shifts</div>
+      <div class="metric-value">${metrics.suspicious_rate_drops || 0}</div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-label">Bonus mismatches</div>
+      <div class="metric-value">${metrics.bonus_mismatch_count || 0}</div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-label">Total deductions</div>
+      <div class="metric-value">${formatCurrency(
+        metrics.total_deductions || 0
+      )}</div>
+    </div>
+  `;
+}
+
+function renderPreviewRow(preview) {
+  if (!Array.isArray(preview) || preview.length === 0) return "";
+  const shift = preview[0];
+  const hourly = shift.hourly_rate || 0;
+  return `
+    <div class="range-pill"><strong>Hourly rate:</strong> ${formatCurrency(
+      hourly
+    )}</div>
+    <div class="range-pill"><strong>Earnings:</strong> ${formatCurrency(
+      shift.earnings || 0
+    )}</div>
+    <div class="range-pill"><strong>Hours online:</strong> ${formatNumber(
+      shift.hours_online || 0
+    )}</div>
+  `;
+}
+
+async function callAnalysis(payload) {
+  const response = await fetch(`${API_BASE}/analyze-form`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+  if (!response.ok || data.error) {
+    throw new Error(data.error || "Analysis failed");
+  }
+  return data;
+}
+
+function buildShiftGroup(index) {
+  return `
+    <details class="shift-group" data-index="${index}" open>
+      <summary>Shift ${index}</summary>
+      <div class="shift-grid">
+        <div class="form-field">
+          <label class="label">Hours online <span>*</span></label>
+          <input type="number" class="shift-input" data-field="hours_online" min="0.1" step="0.1" placeholder="e.g. 8" required />
+        </div>
+        <div class="form-field">
+          <label class="label">Tasks completed <span>*</span></label>
+          <input type="number" class="shift-input" data-field="tasks_completed" min="1" step="1" placeholder="e.g. 15" required />
+        </div>
+        <div class="form-field">
+          <label class="label">Earnings (₹) <span>*</span></label>
+          <input type="number" class="shift-input" data-field="earnings" min="0" step="50" placeholder="e.g. 1800" required />
+        </div>
+        <div class="form-field">
+          <label class="label">Bonuses received (₹)</label>
+          <input type="number" class="shift-input" data-field="bonuses_received" min="0" step="50" placeholder="Actual bonus" />
+        </div>
+        <div class="form-field">
+          <label class="label">Bonuses expected (₹)</label>
+          <input type="number" class="shift-input" data-field="bonuses_expected" min="0" step="50" placeholder="Promised bonus" />
+        </div>
+        <div class="form-field">
+          <label class="label">Deductions (₹)</label>
+          <input type="number" class="shift-input" data-field="deductions" min="0" step="50" placeholder="Penalties / fees" />
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+function renderShiftGroups(count) {
+  const total = Math.max(1, Math.min(10, Number(count) || 1));
+  shiftContainer.innerHTML = Array.from({ length: total }, (_, i) =>
+    buildShiftGroup(i + 1)
+  ).join("");
+}
+
+function collectShifts() {
+  const groups = Array.from(shiftContainer.querySelectorAll(".shift-group"));
+  const shifts = groups.map((group) => {
+    const inputs = group.querySelectorAll(".shift-input");
+    const obj = {};
+    inputs.forEach((input) => {
+      const field = input.dataset.field;
+      obj[field] = normalizeNumber(input.value);
+    });
+    // Use bonuses_received if expected is empty
+    if (!obj.bonuses_expected && obj.bonuses_received) {
+      obj.bonuses_expected = obj.bonuses_received;
+    }
+    return obj;
+  });
+
+  const invalid = shifts.some(
+    (s) => !s.earnings || !s.hours_online || !s.tasks_completed
+  );
+  if (invalid) {
+    throw new Error("Please fill earnings, hours, and tasks for every shift.");
+  }
+  return shifts;
+}
+
+// initial render
+renderShiftGroups(shiftCountEl.value);
+shiftCountEl.addEventListener("change", (e) => {
+  renderShiftGroups(e.target.value);
+});
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const gigType = gigTypeEl.value;
-  const cityTier = cityTierEl.value;
-  const vehicle = vehicleEl.value;
-
-  const totalHoursOnline = Number(totalHoursOnlineEl.value);
-  const tasksCompleted = Number(tasksCompletedEl.value);
-  const earnings = Number(earningsEl.value);
-  const bonusesReceived = Number(bonusesReceivedEl.value || 0);
-  const deductions = Number(deductionsEl.value || 0);
-  const platformFees = Number(platformFeesEl.value || 0);
-  const extraCosts = Number(extraCostsEl.value || 0);
-  const rating = ratingEl.value ? Number(ratingEl.value) : null;
-  const cancellationRate = cancellationRateEl.value
-    ? Number(cancellationRateEl.value)
-    : null;
-
-  if (
-    !gigType ||
-    !cityTier ||
-    !vehicle ||
-    !totalHoursOnline ||
-    !tasksCompleted ||
-    !earnings
-  ) {
-    alert("Please fill all required fields.");
+  let shifts;
+  try {
+    shifts = collectShifts();
+  } catch (err) {
+    alert(err.message);
     return;
   }
 
-  const result = analyzeGigOffer({
-    gigType,
-    cityTier,
-    vehicle,
-    totalHoursOnline,
-    tasksCompleted,
-    earnings,
-    bonusesReceived,
-    deductions,
-    platformFees,
-    extraCosts,
-  });
+  const payload = { shifts };
 
-  results.style.display = "block";
-  requestAnimationFrame(() => {
-    results.classList.add("visible");
-  });
+  submitBtn.disabled = true;
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = "Analyzing...";
 
-  scoreNumber.textContent = result.score;
-  scoreTag.querySelector("span:last-child").textContent = result.tag;
-  scoreLabel.textContent = result.label;
-  scoreFill.style.width = result.score + "%";
-  updateScoreChipTone(result.tone);
+  try {
+    const data = await callAnalysis(payload);
+    const score = normalizeNumber(data.fairness_score);
+    const tone = toneForScore(score);
 
-  let explanation = `
-    Based on this <strong>demo model</strong>, your estimated
-    <strong>net income</strong> is <strong>${formatCurrency(
-      result.netMonthly
-    )}</strong>.
-    That's roughly <strong>${formatCurrency(
-      result.netPerHour
-    )} per hour</strong> online.
-  `;
+    results.style.display = "block";
+    requestAnimationFrame(() => results.classList.add("visible"));
 
-  resultsBody.innerHTML = explanation;
+    scoreNumber.textContent = score;
+    scoreTag.querySelector("span:last-child").textContent = tone.tag;
+    scoreLabel.textContent = data.anomalies?.[0] || "Analysis complete";
+    scoreFill.style.width = `${score}%`;
+    updateScoreChipTone(tone.tone);
 
-  metricRow.innerHTML = `
-    <div class="metric-pill">
-      <div class="metric-label">Hours online</div>
-      <div class="metric-value">${formatNumber(
-        result.totalHoursOnline
-      )} hrs</div>
-    </div>
-    <div class="metric-pill">
-      <div class="metric-label">Tasks completed</div>
-      <div class="metric-value">${result.tasksCompleted.toLocaleString(
-        "en-IN"
-      )}</div>
-    </div>
-    <div class="metric-pill">
-      <div class="metric-label">Net ₹ per task</div>
-      <div class="metric-value">${formatCurrency(result.netPerTask)}</div>
-    </div>
-  `;
+    resultsBody.innerHTML = `
+      <div class="anomaly-list">${renderAnomalies(data.anomalies)}</div>
+    `;
 
-  rangeRow.innerHTML = `
-    <div class="range-pill"><strong>Fair band:</strong> ${formatCurrency(
-      result.fairLow
-    )} – ${formatCurrency(result.fairHigh)}</div>
-    <div class="range-pill"><strong>Your hourly:</strong> ${formatCurrency(
-      result.netPerHour
-    )}</div>
-  `;
+    metricRow.innerHTML = renderMetrics(data.metrics);
+    rangeRow.innerHTML = renderPreviewRow(data.preview);
+  } catch (err) {
+    alert(err.message || "Something went wrong while analyzing.");
+    results.style.display = "none";
+    results.classList.remove("visible");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
 });
 
 document.getElementById("resetForm").addEventListener("click", () => {
   form.reset();
+  renderShiftGroups(shiftCountEl.value || 1);
   results.style.display = "none";
   results.classList.remove("visible");
   scoreFill.style.width = "0";
 });
 
 document.getElementById("quickExample").addEventListener("click", () => {
-  platformEl.value = "ola";
-  gigTypeEl.value = "ride";
-  cityTierEl.value = "metro";
-  vehicleEl.value = "car";
-  totalHoursOnlineEl.value = 230;
-  tasksCompletedEl.value = 340;
-  earningsEl.value = 78000;
-  bonusesReceivedEl.value = 9000;
-  deductionsEl.value = 6000;
-  platformFeesEl.value = 8000;
-  extraCostsEl.value = 15000;
-  ratingEl.value = 4.6;
-  cancellationRateEl.value = 10;
+  shiftCountEl.value = 2;
+  renderShiftGroups(2);
+
+  const groups = shiftContainer.querySelectorAll(".shift-group");
+  const presets = [
+    {
+      hours_online: 8,
+      tasks_completed: 14,
+      earnings: 3200,
+      bonuses_received: 400,
+      bonuses_expected: 500,
+      deductions: 150,
+    },
+    {
+      hours_online: 6,
+      tasks_completed: 11,
+      earnings: 2400,
+      bonuses_received: 250,
+      bonuses_expected: 300,
+      deductions: 120,
+    },
+  ];
+
+  groups.forEach((group, idx) => {
+    const inputs = group.querySelectorAll(".shift-input");
+    inputs.forEach((input) => {
+      const field = input.dataset.field;
+      input.value = presets[idx]?.[field] ?? "";
+    });
+  });
+
   form.dispatchEvent(new Event("submit"));
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
