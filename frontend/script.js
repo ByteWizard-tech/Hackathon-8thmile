@@ -342,43 +342,72 @@ const appealText = document.getElementById("appealText");
 const copyAppealBtn = document.getElementById("copyAppeal");
 const closeAppealBtn = document.getElementById("closeAppeal");
 
-generateAppealBtn.addEventListener("click", async () => {
-  try {
-    const shifts = collectShifts(); // reuse same function
+function openAppealModal() {
+  if (!appealModal) return;
+  appealModal.style.display = "flex";
+  appealModal.classList.add("is-visible");
+  document.body.classList.add("modal-open");
+}
 
-    const response = await fetch(`${API_BASE}/generate-appeal-form`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ shifts }),
-    });
-
-    const data = await response.json();
-
-    if (data.error) {
-      alert("Error generating appeal letter: " + data.error);
-      return;
-    }
-
-    appealText.textContent = data.appeal_letter;
-    appealModal.style.display = "flex";
-  } catch (err) {
-    alert("Failed to generate appeal letter: " + err.message);
-  }
-});
-
-copyAppealBtn.addEventListener("click", () => {
-  navigator.clipboard.writeText(appealText.textContent);
-  copyAppealBtn.textContent = "Copied!";
-  setTimeout(() => (copyAppealBtn.textContent = "Copy Letter"), 1500);
-});
-
-closeAppealBtn.addEventListener("click", () => {
+function closeAppealModal() {
+  if (!appealModal) return;
+  appealModal.classList.remove("is-visible");
   appealModal.style.display = "none";
-});
+  document.body.classList.remove("modal-open");
+}
+
+if (generateAppealBtn) {
+  generateAppealBtn.addEventListener("click", async () => {
+    try {
+      const shifts = collectShifts(); // reuse same function
+
+      const response = await fetch(`${API_BASE}/generate-appeal-form`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shifts }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        alert("Error generating appeal letter: " + data.error);
+        return;
+      }
+
+      appealText.textContent = data.appeal_letter || "";
+      openAppealModal();
+    } catch (err) {
+      alert("Failed to generate appeal letter: " + err.message);
+    }
+  });
+}
+
+if (copyAppealBtn && appealText) {
+  copyAppealBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(appealText.textContent || "");
+    copyAppealBtn.textContent = "Copied!";
+    setTimeout(() => (copyAppealBtn.textContent = "Copy Letter"), 1500);
+  });
+}
+
+if (closeAppealBtn) {
+  closeAppealBtn.addEventListener("click", () => {
+    closeAppealModal();
+  });
+}
 
 // Close modal when clicking outside the dialog box
-appealModal.addEventListener("click", (event) => {
-  if (event.target === appealModal) {
-    appealModal.style.display = "none";
+if (appealModal) {
+  appealModal.addEventListener("click", (event) => {
+    if (event.target === appealModal) {
+      closeAppealModal();
+    }
+  });
+}
+
+// Close with Escape key
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && appealModal?.classList.contains("is-visible")) {
+    closeAppealModal();
   }
 });
