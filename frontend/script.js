@@ -280,7 +280,13 @@ form.addEventListener("submit", async (e) => {
     `;
 
     metricRow.innerHTML = renderMetrics(data.metrics);
-    rangeRow.innerHTML = renderPreviewRow(data.preview);
+const totals = computeTotals(shifts);
+
+rangeRow.innerHTML = `
+  <div class="range-pill"><strong>Total Hours:</strong> ${formatNumber(totals.totalHours)}</div>
+  <div class="range-pill"><strong>Total Earnings:</strong> ${formatCurrency(totals.totalEarnings)}</div>
+  <div class="range-pill"><strong>Avg Hourly Income:</strong> ${formatCurrency(totals.hourlyRate)}</div>
+`;
   } catch (err) {
     alert(err.message || "Something went wrong while analyzing.");
     results.style.display = "none";
@@ -411,3 +417,27 @@ document.addEventListener("keydown", (event) => {
     closeAppealModal();
   }
 });
+
+function computeTotals(shifts) {
+  let totalHours = 0;
+  let totalEarnings = 0;
+
+  shifts.forEach(s => {
+    const earnings = normalizeNumber(s.earnings);
+    const bonus = normalizeNumber(s.bonuses_received);
+    const deductions = normalizeNumber(s.deductions);
+    const hours = normalizeNumber(s.hours_online);
+
+    totalHours += hours;
+    totalEarnings += (earnings + bonus - deductions);
+  });
+
+  const hourlyRate = totalHours > 0 ? totalEarnings / totalHours : 0;
+
+  return {
+    totalHours,
+    totalEarnings,
+    hourlyRate
+  };
+}
+
