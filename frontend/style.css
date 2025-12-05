@@ -952,28 +952,44 @@ body.dark .fairpay-footer .copyright {
 .appeal-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: none;
+  background: rgba(0, 0, 0, 0.65); /* darker shadow overlay */
+  display: none; /* hidden by default */
   align-items: center;
   justify-content: center;
   z-index: 9999;
   padding: 30px;
 }
 
+/* visible state controlled via JS */
+.appeal-modal.is-visible {
+  display: flex;
+}
+
 .appeal-content {
-  background: var(--surface-2, #1e1e2e);
-  color: var(--text, #eee);
+  background: var(--surface-2, #020617);
+  color: var(--text, #e5e7eb);
   padding: 20px;
   width: 90%;
-  max-width: 600px;
-  max-height: 80vh;
-  overflow-y: auto; /* ✨ Now scrolls */
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  max-width: 700px;
+  max-height: 80vh; /* modal height cap */
+  border-radius: 18px;
+  box-shadow: 0 22px 45px rgba(15, 23, 42, 0.9);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* container fixed, inner text scrolls */
 }
 
 .appeal-content pre {
   white-space: pre-wrap;
   line-height: 1.6;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex: 1;
+  overflow-y: auto; /* ✨ scrollable letter area */
+}
+
+/* prevent background scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
 }
