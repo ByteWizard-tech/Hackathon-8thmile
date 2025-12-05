@@ -993,3 +993,32 @@ body.dark .fairpay-footer .copyright {
 body.modal-open {
   overflow: hidden;
 }
+
+.lang-toggle {
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 2px;
+  gap: 2px;
+}
+
+.lang-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--fast), color var(--fast), transform var(--fast);
+}
+
+.lang-btn:hover {
+  transform: translateY(-0.5px);
+}
+
+.lang-btn.lang-active {
+  background: radial-gradient(circle at 0 0, #38bdf8, #0f172a);
+  color: #e5f3ff;
+}

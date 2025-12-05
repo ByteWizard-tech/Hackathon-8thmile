@@ -173,37 +173,106 @@ async function callAnalysis(payload) {
 }
 
 function buildShiftGroup(index) {
-  return `
-    <details class="shift-group" data-index="${index}" open>
-      <summary>Shift ${index}</summary>
-      <div class="shift-grid">
-        <div class="form-field">
-          <label class="label">Hours online <span>*</span></label>
-          <input type="number" class="shift-input" data-field="hours_online" min="0.1" step="0.1" placeholder="e.g. 8" required />
-        </div>
-        <div class="form-field">
-          <label class="label">Tasks completed <span>*</span></label>
-          <input type="number" class="shift-input" data-field="tasks_completed" min="1" step="1" placeholder="e.g. 15" required />
-        </div>
-        <div class="form-field">
-          <label class="label">Earnings (₹) <span>*</span></label>
-          <input type="number" class="shift-input" data-field="earnings" min="0" step="50" placeholder="e.g. 1800" required />
-        </div>
-        <div class="form-field">
-          <label class="label">Bonuses received (₹)</label>
-          <input type="number" class="shift-input" data-field="bonuses_received" min="0" step="50" placeholder="Actual bonus" />
-        </div>
-        <div class="form-field">
-          <label class="label">Bonuses expected (₹)</label>
-          <input type="number" class="shift-input" data-field="bonuses_expected" min="0" step="50" placeholder="Promised bonus" />
-        </div>
-        <div class="form-field">
-          <label class="label">Deductions (₹)</label>
-          <input type="number" class="shift-input" data-field="deductions" min="0" step="50" placeholder="Penalties / fees" />
-        </div>
-      </div>
-    </details>
-  `;
+  return `<details class="shift-group" data-index="${index}" open>
+  <summary>Shift ${index}</summary>
+  <div class="shift-grid">
+
+    <div class="form-field">
+      <label class="label" data-i18n="hoursOnlineLabel">
+        Hours online <span>*</span>
+      </label>
+      <input
+        type="number"
+        class="shift-input"
+        data-field="hours_online"
+        min="0.1"
+        step="0.1"
+        placeholder="e.g. 8"
+        data-i18n-placeholder="hoursOnlinePlaceholder"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="label" data-i18n="tasksCompletedLabel">
+        Tasks completed <span>*</span>
+      </label>
+      <input
+        type="number"
+        class="shift-input"
+        data-field="tasks_completed"
+        min="1"
+        step="1"
+        placeholder="e.g. 15"
+        data-i18n-placeholder="tasksCompletedPlaceholder"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="label" data-i18n="earningsLabel">
+        Earnings (₹) <span>*</span>
+      </label>
+      <input
+        type="number"
+        class="shift-input"
+        data-field="earnings"
+        min="0"
+        step="50"
+        placeholder="e.g. 1800"
+        data-i18n-placeholder="earningsPlaceholder"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="label" data-i18n="bonusesReceivedLabel">
+        Bonuses received (₹)
+      </label>
+      <input
+        type="number"
+        class="shift-input"
+        data-field="bonuses_received"
+        min="0"
+        step="50"
+        placeholder="Actual bonus"
+        data-i18n-placeholder="bonusReceivedPlaceholder"
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="label" data-i18n="bonusesExpectedLabel">
+        Bonuses expected (₹)
+      </label>
+      <input
+        type="number"
+        class="shift-input"
+        data-field="bonuses_expected"
+        min="0"
+        step="50"
+        placeholder="Promised bonus"
+        data-i18n-placeholder="bonusExpectedPlaceholder"
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="label" data-i18n="deductionsLabel">
+        Deductions (₹)
+      </label>
+      <input
+        type="number"
+        class="shift-input"
+        data-field="deductions"
+        min="0"
+        step="50"
+        placeholder="Penalties / fees"
+        data-i18n-placeholder="deductionsPlaceholder"
+      />
+    </div>
+
+  </div>
+</details>
+`;
 }
 
 function renderShiftGroups(count) {
@@ -280,12 +349,18 @@ form.addEventListener("submit", async (e) => {
     `;
 
     metricRow.innerHTML = renderMetrics(data.metrics);
-const totals = computeTotals(shifts);
+    const totals = computeTotals(shifts);
 
-rangeRow.innerHTML = `
-  <div class="range-pill"><strong>Total Hours:</strong> ${formatNumber(totals.totalHours)}</div>
-  <div class="range-pill"><strong>Total Earnings:</strong> ${formatCurrency(totals.totalEarnings)}</div>
-  <div class="range-pill"><strong>Avg Hourly Income:</strong> ${formatCurrency(totals.hourlyRate)}</div>
+    rangeRow.innerHTML = `
+  <div class="range-pill"><strong>Total Hours:</strong> ${formatNumber(
+    totals.totalHours
+  )}</div>
+  <div class="range-pill"><strong>Total Earnings:</strong> ${formatCurrency(
+    totals.totalEarnings
+  )}</div>
+  <div class="range-pill"><strong>Avg Hourly Income:</strong> ${formatCurrency(
+    totals.hourlyRate
+  )}</div>
 `;
   } catch (err) {
     alert(err.message || "Something went wrong while analyzing.");
@@ -422,14 +497,14 @@ function computeTotals(shifts) {
   let totalHours = 0;
   let totalEarnings = 0;
 
-  shifts.forEach(s => {
+  shifts.forEach((s) => {
     const earnings = normalizeNumber(s.earnings);
     const bonus = normalizeNumber(s.bonuses_received);
     const deductions = normalizeNumber(s.deductions);
     const hours = normalizeNumber(s.hours_online);
 
     totalHours += hours;
-    totalEarnings += (earnings + bonus - deductions);
+    totalEarnings += earnings + bonus - deductions;
   });
 
   const hourlyRate = totalHours > 0 ? totalEarnings / totalHours : 0;
@@ -437,7 +512,214 @@ function computeTotals(shifts) {
   return {
     totalHours,
     totalEarnings,
-    hourlyRate
+    hourlyRate,
   };
 }
 
+// ------------------- LANGUAGE / I18N -------------------
+const translations = {
+  en: {
+    analyzerTitle: "FairPay Gig Analyzer",
+    analyzerSubtitle: "Estimate fairness based on metrics.",
+
+    heroTitle: "FairPay checks if your gig income is fair.",
+    heroSubtitle:
+      "For drivers and delivery partners on Ola, Uber, Swiggy, Zomato, Porter, Dunzo and other platforms. Enter your hours online, tasks completed, earnings and costs — get a fairness score and a better target rate.",
+
+    quickExampleBtn: "Try an Ola / Uber example →",
+    seeHowBtn: "See how FairPay calculates",
+
+    shiftCountLabel: "Number of shifts *",
+    shiftCountPlaceholder: "e.g. 3",
+
+    platformLabel: "Platform *",
+    gigTypeLabel: "Type of work *",
+    cityLabel: "City *",
+    vehicleLabel: "Vehicle type *",
+
+    hoursOnlineLabel: "Hours online *",
+    hoursOnlinePlaceholder: "e.g. 8",
+
+    tasksCompletedLabel: "Tasks completed *",
+    tasksCompletedPlaceholder: "e.g. 15",
+
+    earningsLabel: "Earnings (₹) *",
+    earningsPlaceholder: "e.g. 1800",
+
+    bonusReceivedLabel: "Bonuses received (₹)",
+    bonusReceivedPlaceholder: "Actual bonus",
+
+    bonusExpectedLabel: "Bonuses expected (₹)",
+    bonusExpectedPlaceholder: "Promised bonus",
+
+    deductionsLabel: "Deductions (₹)",
+    deductionsPlaceholder: "Penalties / fees",
+
+    analyzeBtn: "Analyze",
+    resetBtn: "Reset",
+    appealBtn: "Generate Appeal Letter",
+
+    resultsTitle: "FairPay score",
+    resultsSubtitleEmpty: "Fill details and analyze.",
+    resultsSubtitleDone: "Analysis complete",
+    noAnomalies: "No anomalies reported.",
+  },
+
+  hi: {
+    analyzerTitle: "FairPay गिग विश्लेषक",
+    analyzerSubtitle: "मेट्रिक्स के आधार पर न्यायपूर्ण आय का अनुमान।",
+
+    heroTitle: "FairPay जाँच करता है कि आपकी गिग आय न्यायपूर्ण है या नहीं।",
+    heroSubtitle:
+      "Ola, Uber, Swiggy, Zomato, Porter, Dunzo और अन्य प्लेटफ़ॉर्म पर ड्राइवर और डिलीवरी पार्टनर के लिए। अपने ऑनलाइन घंटे, किए गए कार्य, कमाई और खर्च दर्ज करें — एक न्यायपूर्णता स्कोर और बेहतर लक्ष्य दर पाएं।",
+
+    quickExampleBtn: "Ola / Uber का उदाहरण आज़माएँ →",
+    seeHowBtn: "FairPay कैसे गणना करता है देखें",
+
+    shiftCountLabel: "शिफ़्ट की संख्या *",
+    shiftCountPlaceholder: "जैसे 3",
+
+    platformLabel: "प्लेटफ़ॉर्म *",
+    gigTypeLabel: "काम का प्रकार *",
+    cityLabel: "शहर *",
+    vehicleLabel: "वाहन प्रकार *",
+
+    hoursOnlineLabel: "ऑनलाइन घंटे *",
+    hoursOnlinePlaceholder: "जैसे 8",
+
+    tasksCompletedLabel: "पूरे किए गए कार्य *",
+    tasksCompletedPlaceholder: "जैसे 15",
+
+    earningsLabel: "कुल कमाई (₹) *",
+    earningsPlaceholder: "जैसे 1800",
+
+    bonusReceivedLabel: "मिली हुई बोनस राशि (₹)",
+    bonusReceivedPlaceholder: "वास्तविक बोनस",
+
+    bonusExpectedLabel: "उम्मीद की गई बोनस राशि (₹)",
+    bonusExpectedPlaceholder: "वादा किया हुआ बोनस",
+
+    deductionsLabel: "काटे गए शुल्क / जुर्माने (₹)",
+    deductionsPlaceholder: "पेनल्टी / फ़ीस",
+
+    analyzeBtn: "विश्लेषण करें",
+    resetBtn: "रीसेट",
+    appealBtn: "अपील पत्र बनाएँ",
+
+    resultsTitle: "FairPay स्कोर",
+    resultsSubtitleEmpty: "विवरण भरें और विश्लेषण करें।",
+    resultsSubtitleDone: "विश्लेषण पूरा हुआ",
+    noAnomalies: "कोई अनियमितता नहीं मिली।",
+  },
+
+  kn: {
+    analyzerTitle: "FairPay ಗಿಗ್ ವಿಶ್ಲೇಷಕ",
+    analyzerSubtitle: "ಮೆಟ್ರಿಕ್‌ಗಳ ಆಧಾರದ ಮೇಲೆ ನ್ಯಾಯಸಮ್ಮತ ಆದಾಯ ಅಂದಾಜು.",
+
+    heroTitle: "FairPay ನಿಮ್ಮ ಗಿಗ್ ಆದಾಯ ನ್ಯಾಯಯುತವೇ ಎಂದು ಪರಿಶೀಲಿಸುತ್ತದೆ.",
+    heroSubtitle:
+      "Ola, Uber, Swiggy, Zomato, Porter, Dunzo ಮತ್ತು ಇತರ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್‌ಗಳ ಚಾಲಕರಿಗೂ ಡೆಲಿವರಿ ಪಾಲುದಾರರಿಗೂ. ನಿಮ್ಮ ಆನ್‌ಲೈನ್ ಗಂಟೆ, ಪೂರ್ಣಗೊಳಿಸಿದ ಕೆಲಸ, ಆದಾಯ ಮತ್ತು ವೆಚ್ಚಗಳನ್ನು ನಮೂದಿಸಿ — ನ್ಯಾಯತೆ ಅಂಕ ಮತ್ತು ಉತ್ತಮ ಗುರಿ ದರವನ್ನು ಪಡೆಯಿರಿ.",
+
+    quickExampleBtn: "Ola / Uber ಉದಾಹರಣೆಯನ್ನು ಪ್ರಯತ್ನಿಸಿ →",
+    seeHowBtn: "FairPay ಹೇಗೆ ಲೆಕ್ಕ ಹಾಕುತ್ತದೆ ನೋಡಿ",
+
+    shiftCountLabel: "ಶಿಫ್ಟ್‌ಗಳ ಸಂಖ್ಯೆ *",
+    shiftCountPlaceholder: "ಉದಾ. 3",
+
+    platformLabel: "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ *",
+    gigTypeLabel: "ಕೆಲಸದ ವಿಧ *",
+    cityLabel: "ನಗರ *",
+    vehicleLabel: "ವಾಹನದ ವಿಧ *",
+
+    hoursOnlineLabel: "ಆನ್‌ಲೈನ್ ಗಂಟೆಗಳು *",
+    hoursOnlinePlaceholder: "ಉದಾ. 8",
+
+    tasksCompletedLabel: "ಪೂರೈಸಿದ ಕಾರ್ಯಗಳು *",
+    tasksCompletedPlaceholder: "ಉದಾ. 15",
+
+    earningsLabel: "ಒಟ್ಟು ಆದಾಯ (₹) *",
+    earningsPlaceholder: "ಉದಾ. 1800",
+
+    bonusReceivedLabel: "ಪಡೆಯಲಾದ ಬೋನಸ್ (₹)",
+    bonusReceivedPlaceholder: "ವಾಸ್ತವಿಕ ಬೋನಸ್",
+
+    bonusExpectedLabel: "ನಿರೀಕ್ಷಿತ ಬೋನಸ್ (₹)",
+    bonusExpectedPlaceholder: "ಭರವಸೆ ನೀಡಿದ ಬೋನಸ್",
+
+    deductionsLabel: "ಕಡಿತಗಳು (₹)",
+    deductionsPlaceholder: "ದಂಡ / ಶುಲ್ಕ",
+
+    analyzeBtn: "ವಿಶ್ಲೇಷಿಸಿ",
+    resetBtn: "ರಿಸೆಟ್",
+    appealBtn: "ಅಪೀಲಿನ ಪತ್ರ ರಚಿಸಿ",
+
+    resultsTitle: "FairPay ಅಂಕ",
+    resultsSubtitleEmpty: "ವಿವರಗಳನ್ನು ತುಂಬಿ ಬಳಿಕ ವಿಶ್ಲೇಷಿಸಿ.",
+    resultsSubtitleDone: "ವಿಶ್ಲೇಷಣೆ ಪೂರ್ಣವಾಗಿದೆ",
+    noAnomalies: "ಯಾವುದೇ ಅಸಮಾನತೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
+  },
+};
+
+let currentLang = "en";
+
+function applyLanguage(lang) {
+  currentLang = lang;
+  const dict = translations[lang];
+
+  // Elements whose full textContent we replace
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key]) {
+      // keep existing <span> (like "FairPay") if needed
+      if (el.tagName === "H1" && key === "heroTitle") {
+        const span = el.querySelector("span");
+        const textWithoutBrand = dict[key].replace("FairPay", "").trim();
+        el.innerHTML = "";
+        if (span) {
+          el.appendChild(span);
+          el.append(" " + textWithoutBrand);
+        } else {
+          el.textContent = dict[key];
+        }
+      } else {
+        el.textContent = dict[key];
+      }
+    }
+  });
+
+  // Elements whose placeholder we replace
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((inputEl) => {
+    const key = inputEl.getAttribute("data-i18n-placeholder");
+    if (dict[key]) {
+      inputEl.placeholder = dict[key];
+    }
+  });
+
+  // Update buttons that currently have text set in JS (optional)
+  const analyzeBtn = document.querySelector(
+    "#fairPayForm button[type='submit']"
+  );
+  if (analyzeBtn && dict.analyzeBtn) analyzeBtn.textContent = dict.analyzeBtn;
+
+  const resetBtn = document.getElementById("resetForm");
+  if (resetBtn && dict.resetBtn) resetBtn.textContent = dict.resetBtn;
+
+  const appealBtn = document.getElementById("generateAppeal");
+  if (appealBtn && dict.appealBtn) appealBtn.textContent = dict.appealBtn;
+}
+
+// Attach click handlers to language buttons
+document.addEventListener("DOMContentLoaded", () => {
+  const langButtons = document.querySelectorAll(".lang-btn");
+  langButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const lang = btn.getAttribute("data-lang");
+      langButtons.forEach((b) => b.classList.remove("lang-active"));
+      btn.classList.add("lang-active");
+      applyLanguage(lang);
+    });
+  });
+
+  // Apply default language once on load
+  applyLanguage(currentLang);
+});
